@@ -234,7 +234,7 @@ function run = COPSE_frontend(S)
     pars.whenend = 0 ;
 
     % pars.plotrange = [-620 -590] ;
-    pars.plotrange = [-800 0] ;
+    pars.plotrange = [-560 0] ;
 
     %%%%%%% set number of model steps to take before beiling out
     pars.bailnumber = 1e5;
