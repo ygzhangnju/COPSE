@@ -36,8 +36,12 @@ DOC_res = y(22) ;
 U = y(23) ;
 d238U_sw = y(24) / y(23) ;
 
-%%%% geological time in Ma
-t_geol = t*(1e-6) ;
+%%%% geological time in Ma (runcontrol = -2 sets a present day run)
+if pars.runcontrol == -2
+    t_geol = 0;
+else
+    t_geol = t*(1e-6) ;
+end
 
 %%%%%%% calculate isotopic fractionation of reservoirs
 delta_G = y(12)/y(5);
@@ -55,6 +59,7 @@ atfrac = atfrac0 * (A/pars.A0) ;
 %%%%%%%% calculations for pCO2, pO2
 RCO2 = (A/pars.A0)*(atfrac/atfrac0) ;
 CO2atm = RCO2*(280e-6) ;
+CO2ppm= CO2atm*280 ;
 
 %%%%% mixing ratio of oxygen (not proportional to O reservoir)
 mrO2 = ( O/pars.O0 )  /   ( (O/pars.O0)  + pars.copsek16 ) ;
@@ -69,22 +74,22 @@ RO2 =  O/pars.O0 ;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%% COPSE Reloaded forcing set
-CP_reloaded = interp1qr( 1e6 * forcings.t', forcings.CP' , t ) ;
-E_reloaded = interp1qr( 1e6 * forcings.t', forcings.E' , t ) ;
-W_reloaded = interp1qr( 1e6 * forcings.t', forcings.W' , t ) ;
-coal_reloaded = interp1qr( 1e6 * forcings.t', forcings.coal' , t ) ;
+CP_reloaded = interp1qr( forcings.t', forcings.CP' , t_geol ) ;
+E_reloaded = interp1qr( forcings.t', forcings.E' , t_geol ) ;
+W_reloaded = interp1qr( forcings.t', forcings.W' , t_geol ) ;
+coal_reloaded = interp1qr( forcings.t', forcings.coal' , t_geol ) ;
 
 %%%% Additional forcings
-GA_revised = interp1qr( forcings.GA_revised(:,1) , forcings.GA_revised(:,2) , t ) ;
-D_sbz_rift = interp1qr( forcings.D_SBZ_RIFT(:,1) , forcings.D_SBZ_RIFT(:,2) , t ) ;
-U_smooth2018 = interp1qr( forcings.usmooth_2018(:,1) , forcings.usmooth_2018(:,2)./forcings.usmooth_2018(end,2) , t ) ;
-cryo_PG = interp1qr( forcings.cryo_PG(:,1) , forcings.cryo_PG(:,2) , t ) ;
-GR_BA = interp1qr( forcings.GR_BA(:,1) , forcings.GR_BA(:,2) , t ) ;
-epsilon_new = interp1qr([-1000e6 -466e6 -444e6 -411e6 -399e6 0 ]',[0.75 0.75 1.5 1.5 1 1 ]',t) ;
+GA_revised = interp1qr( forcings.GA_revised(:,1) ./ 1e6 , forcings.GA_revised(:,2) , t_geol ) ;
+D_sbz_rift = interp1qr( forcings.D_SBZ_RIFT(:,1) ./ 1e6 , forcings.D_SBZ_RIFT(:,2) , t_geol ) ;
+U_smooth2018 = interp1qr( forcings.usmooth_2018(:,1) ./ 1e6 , forcings.usmooth_2018(:,2)./forcings.usmooth_2018(end,2) , t_geol ) ;
+cryo_PG = interp1qr( forcings.cryo_PG(:,1) ./ 1e6 , forcings.cryo_PG(:,2) , t_geol ) ;
+GR_BA = interp1qr( forcings.GR_BA(:,1) ./ 1e6, forcings.GR_BA(:,2) , t_geol ) ;
+epsilon_new = interp1qr([-1000 -466 -444 -411 -399 0 ]',[0.75 0.75 1.5 1.5 1 1 ]',t_geol) ;
 
 %%%% S inputs
-GYP_INPUT = interp1qr([-1000e6 -581e6 -580e6 -571e6 -570e6 0]',[0 0 7 7 0 0]',t) ;
-PYR_INPUT = interp1qr([-1000e6 -581e6 -580e6 -571e6 -570e6 0]',[0 0 7 7 0 0]',t) ;
+GYP_INPUT = interp1qr([-1000 -581 -580 -571 -570 0]',[0 0 7 7 0 0]',t_geol) ;
+PYR_INPUT = interp1qr([-1000 -581 -580 -571 -570 0]',[0 0 7 7 0 0]',t_geol) ;
 pyrburialfrac = 0.8 ;
 
 
@@ -272,7 +277,7 @@ k_u = 0.4 ;
 ANOX = 1 / ( 1 + exp( -1 * k_anox * ( k_u * (newp/pars.newp0) - (O/pars.O0) ) ) ) ;
 
 %%%% bioturbation forcing
-f_biot = interp1qr([-1000e6 -525e6 -520e6 0]',[0 0 1 1]',t);
+f_biot = interp1qr([-1000 -525 -520 0]',[0 0 1 1]',t_geol);
 CB = interp1qr([0 1]',[1.2 1]',f_biot) ;
 
 %%%%% carbon burial
@@ -600,7 +605,7 @@ if sensanal == 0
     workingstate.d238U_sw(stepnumber,1) = d238U_sw ;
     workingstate.d_in(stepnumber,1) = d_in ;
     %%%%%%%% print time
-    workingstate.time_myr(stepnumber,1) = t_geol ;
+    workingstate.time_myr(stepnumber,1) = t * 1e6;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -615,7 +620,7 @@ if sensanal == 1
     workingstate.CO2ppm(stepnumber,1) = RCO2*280 ;
     workingstate.mrO2(stepnumber,1) = mrO2 ;
     workingstate.T_gast(stepnumber,1) = TEMP_gast - 273 ;
-    workingstate.time_myr(stepnumber,1) = t_geol ;
+    workingstate.time_myr(stepnumber,1) = t * 1e6 ;
     workingstate.time(stepnumber,1) = t;
     workingstate.ANOX(stepnumber,1) = ANOX ;
     workingstate.DOC_res(stepnumber,1) = DOC_res ;

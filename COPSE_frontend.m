@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%   Define parameters   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function run = COPSE_frontend(S)
+function run = COPSE_frontend(runcontrol)
 
     %%%%%%% remove structures from pervious runs 
     clear stepnumber
@@ -38,7 +38,7 @@ function run = COPSE_frontend(S)
     global Stune
     
     %%%%%% check for sensitivity analysis
-    if S >= 1
+    if runcontrol >= 1
         sensanal = 1 ;
         plotrun = 0 ;
         pars.telltime = 0 ;
@@ -47,6 +47,7 @@ function run = COPSE_frontend(S)
         plotrun = 1 ;
         pars.telltime = 1 ;
     end
+    pars.runcontrol = runcontrol;
     
     %%%%%%% starting to load params
     if sensanal == 0 
@@ -288,7 +289,7 @@ function run = COPSE_frontend(S)
     if isempty(Gtune) == 1
 
 %     outputs = [ 0.5 1.2 2.5 1 0.1 1 3] ;
-    outputs = [ 0.33 1 2 0.25 0.1 1 3] ;
+        outputs = [ 0.33 1 2 0.25 0.1 1 3] ;
 
         pars.gstart = pars.G0 * outputs(1) ;
         pars.cstart = pars.C0 * outputs(2) ;
